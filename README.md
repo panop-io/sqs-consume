@@ -1,7 +1,21 @@
+
 # Sqs Consume
 
 ### Simple and concurrently consuming utility for AWS SQS
 Sqs-consumer allows developers to consume messages from a sqs queue leveraging go's competition management. Use Sqs consumer is very simple, fast and clean.
+
+```
+__  __                    _    __          __        _
+|  \/  |                  | |   \ \        / /       | |
+| \  / | ___ _ __     __ _| |_   \ \  /\  / /__  _ __| | __
+| |\/| |/ _ \ '_ \   / _` | __|   \ \/  \/ / _ \| '__| |/ /
+| |  | |  __/ | | | | (_| | |_     \  /\  / (_) | |  |   <
+|_|  |_|\___|_| |_|  \__,_|\__|     \/  \/ \___/|_|  |_|\_\
+.
+.
+.
+.
+```
 
 ### Example
 ```go

@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"context"
+	"errors"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
@@ -9,6 +10,11 @@ const (
 	DefaultMaxNumberOfMessages = int32(10)
 	DefaultWaitTimeSeconds     = int32(5)
 	DefaultConcurrency         = 1
+)
+
+var (
+	SentinelErrorQueueNotSet = errors.New("queue not set")
+	SentinelErrorConfigIsNil = errors.New("configuration is nil")
 )
 
 type SQSConf struct {
@@ -21,12 +27,12 @@ type SQSConf struct {
 
 type SQSClient interface {
 	ReceiveMessage(ctx context.Context, params *sqs.ReceiveMessageInput, optFns ...func(*sqs.Options)) (*sqs.ReceiveMessageOutput, error)
-	DeleteMessage(ctx context.Context, params *sqs.DeleteMessageInput, optFns ...func(*sqs.Options)) (*sqs.DeleteMessageOutput, error)
+	DeleteMessageBatch(ctx context.Context, params *sqs.DeleteMessageBatchInput, optFns ...func(*sqs.Options)) (*sqs.DeleteMessageBatchOutput, error)
 }
 
-type Consumer struct {
+type SQS struct {
 	config    *SQSConf
-	client    SQSClient
+	sqs       SQSClient
 	consumeFn ConsumerFn
 }
 
