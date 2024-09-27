@@ -2,7 +2,6 @@ package consumer
 
 import (
 	"context"
-	"github.com/The-Data-Appeal-Company/batcher-go"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/types"
@@ -87,31 +86,6 @@ func (s *SQS) handleMessages(ctx context.Context) error {
 
 			if err := s.deleteSqsMessages(ctx, toDelete); err != nil {
 				return err
-			}
-
-		}
-	}
-}
-
-func (s *SQS) handleMessagesBatched(ctx context.Context, batch *batcher.Batcher) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			result, err := s.sqs.ReceiveMessage(ctx, s.pullMessagesRequest(ctx))
-
-			if err != nil {
-				return err
-			}
-
-			if len(result.Messages) == 0 {
-				time.Sleep(1 * time.Second)
-				continue
-			}
-
-			for _, msg := range result.Messages {
-				batch.Accumulate(msg)
 			}
 
 		}
