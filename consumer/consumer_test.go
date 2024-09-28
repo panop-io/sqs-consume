@@ -72,9 +72,8 @@ func TestNewSQSWorker(t *testing.T) {
 				consumeFn: consumeTestFunc,
 			},
 			want: &SQS{
-				config:    sqsConf,
-				sqs:       svc,
-				consumeFn: consumeTestFunc,
+				config: sqsConf,
+				sqs:    svc,
 			},
 
 			wantErr: nil,
@@ -95,8 +94,7 @@ func TestNewSQSWorker(t *testing.T) {
 					MaxNumberOfMessages: DefaultMaxNumberOfMessages,
 					WaitTimeSeconds:     DefaultWaitTimeSeconds,
 				},
-				sqs:       svc,
-				consumeFn: consumeTestFunc,
+				sqs: svc,
 			},
 
 			wantErr: nil,
@@ -117,8 +115,7 @@ func TestNewSQSWorker(t *testing.T) {
 					MaxNumberOfMessages: DefaultMaxNumberOfMessages,
 					WaitTimeSeconds:     DefaultWaitTimeSeconds,
 				},
-				sqs:       svc,
-				consumeFn: consumeTestFunc,
+				sqs: svc,
 			},
 
 			wantErr: SentinelErrorQueueNotSet,
@@ -137,8 +134,7 @@ func TestNewSQSWorker(t *testing.T) {
 					MaxNumberOfMessages: DefaultMaxNumberOfMessages,
 					WaitTimeSeconds:     DefaultWaitTimeSeconds,
 				},
-				sqs:       svc,
-				consumeFn: consumeTestFunc,
+				sqs: svc,
 			},
 
 			wantErr: SentinelErrorConfigIsNil,
@@ -147,7 +143,7 @@ func TestNewSQSWorker(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewSQSConsumer(tt.args.conf, tt.args.svc, tt.args.consumeFn)
+			got, err := NewSQSConsumer(tt.args.conf, tt.args.svc)
 			if tt.wantErr != nil {
 				require.ErrorIs(t, err, tt.wantErr)
 				return
@@ -185,7 +181,8 @@ func TestSQS_Start(t *testing.T) {
 			name: "shouldHandleMessage",
 			fields: fields{
 				config: &SQSConf{
-					Queue: queueUrl,
+					Queue:          queueUrl,
+					DeleteStrategy: DeleteStrategyImmediate,
 				},
 				svc: new(SqsMock),
 			},
@@ -200,7 +197,8 @@ func TestSQS_Start(t *testing.T) {
 			name: "should error when receive",
 			fields: fields{
 				config: &SQSConf{
-					Queue: queueUrl,
+					Queue:          queueUrl,
+					DeleteStrategy: DeleteStrategyImmediate,
 				},
 				svc: new(SqsMock),
 			},
@@ -214,7 +212,8 @@ func TestSQS_Start(t *testing.T) {
 			name: "should error when delete",
 			fields: fields{
 				config: &SQSConf{
-					Queue: queueUrl,
+					Queue:          queueUrl,
+					DeleteStrategy: DeleteStrategyImmediate,
 				},
 				svc: new(SqsMock),
 			},
@@ -228,7 +227,8 @@ func TestSQS_Start(t *testing.T) {
 			name: "should context timeout",
 			fields: fields{
 				config: &SQSConf{
-					Queue: queueUrl,
+					Queue:          queueUrl,
+					DeleteStrategy: DeleteStrategyImmediate,
 				},
 				svc: new(SqsMock),
 			},
@@ -252,8 +252,8 @@ func TestSQS_Start(t *testing.T) {
 
 			ctx, _ := context.WithTimeout(context.Background(), 500*time.Millisecond)
 
-			s, _ := NewSQSConsumer(tt.fields.config, tt.fields.svc, tt.args.consumeFn)
-			err := s.Start(ctx)
+			s, _ := NewSQSConsumer(tt.fields.config, tt.fields.svc)
+			err := s.Start(ctx, tt.args.consumeFn)
 
 			t.Log(len(actual))
 			mocked := tt.fields.svc.(*SqsMock)

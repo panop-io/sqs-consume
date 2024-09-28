@@ -1,21 +1,9 @@
-
 # Sqs Consume
+
+based on the work 	"github.com/The-Data-Appeal-Company/batcher-go"
 
 ### Simple and concurrently consuming utility for AWS SQS
 Sqs-consumer allows developers to consume messages from a sqs queue leveraging go's competition management. Use Sqs consumer is very simple, fast and clean.
-
-```
-__  __                    _    __          __        _
-|  \/  |                  | |   \ \        / /       | |
-| \  / | ___ _ __     __ _| |_   \ \  /\  / /__  _ __| | __
-| |\/| |/ _ \ '_ \   / _` | __|   \ \/  \/ / _ \| '__| |/ /
-| |  | |  __/ | | | | (_| | |_     \  /\  / (_) | |  |   <
-|_|  |_|\___|_| |_|  \__,_|\__|     \/  \/ \___/|_|  |_|\_\
-.
-.
-.
-.
-```
 
 ### Example
 ```go
@@ -46,6 +34,12 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
-	c.Start(context.Background(), test)
+	c.Start(context.Background(), consume)
 }
+
+
+
+func consume (data []byte) error {
+		return nil
+	}
 ```

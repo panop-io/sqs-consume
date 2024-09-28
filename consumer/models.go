@@ -10,6 +10,9 @@ const (
 	DefaultMaxNumberOfMessages = int32(10)
 	DefaultWaitTimeSeconds     = int32(5)
 	DefaultConcurrency         = 1
+
+	DeleteStrategyImmediate = DeleteStrategy("IMMEDIATE")
+	DeleteStrategyOnSuccess = DeleteStrategy("ON_SUCCESS")
 )
 
 var (
@@ -17,12 +20,15 @@ var (
 	SentinelErrorConfigIsNil = errors.New("configuration is nil")
 )
 
+type DeleteStrategy string
+
 type SQSConf struct {
 	Queue               string
 	Concurrency         int
 	MaxNumberOfMessages int32
 	VisibilityTimeout   int32
 	WaitTimeSeconds     int32
+	DeleteStrategy      DeleteStrategy
 }
 
 type SQSClient interface {
@@ -31,9 +37,8 @@ type SQSClient interface {
 }
 
 type SQS struct {
-	config    *SQSConf
-	sqs       SQSClient
-	consumeFn ConsumerFn
+	config *SQSConf
+	sqs    SQSClient
 }
 
 type ConsumerFn func(data []byte) error

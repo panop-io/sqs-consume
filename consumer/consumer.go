@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func NewSQSConsumer(conf *SQSConf, svc SQSClient, consumeFn ConsumerFn) (*SQS, error) {
+func NewSQSConsumer(conf *SQSConf, svc SQSClient) (*SQS, error) {
 
 	if conf == nil {
 		return nil, SentinelErrorConfigIsNil
@@ -33,10 +33,10 @@ func NewSQSConsumer(conf *SQSConf, svc SQSClient, consumeFn ConsumerFn) (*SQS, e
 		conf.MaxNumberOfMessages = DefaultMaxNumberOfMessages
 	}
 
-	return &SQS{config: conf, sqs: svc, consumeFn: consumeFn}, nil
+	return &SQS{config: conf, sqs: svc}, nil
 }
 
-func (s *SQS) Start(ctx context.Context) error {
+func (s *SQS) Start(ctx context.Context, consumeFn ConsumerFn) error {
 	ctx, cancel := context.WithCancel(ctx)
 
 	go func() {
@@ -50,14 +50,14 @@ func (s *SQS) Start(ctx context.Context) error {
 
 	for i := 0; i < s.config.Concurrency; i++ {
 		g.Go(func() error {
-			return s.handleMessages(ctx)
+			return s.handleMessages(ctx, consumeFn)
 		})
 	}
 
 	return g.Wait()
 }
 
-func (s *SQS) handleMessages(ctx context.Context) error {
+func (s *SQS) handleMessages(ctx context.Context, consumeFn ConsumerFn) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -74,14 +74,22 @@ func (s *SQS) handleMessages(ctx context.Context) error {
 				continue
 			}
 
+			if s.config.DeleteStrategy == DeleteStrategyImmediate {
+				if err := s.deleteSqsMessages(ctx, result.Messages); err != nil {
+					return err
+				}
+			}
+
 			toDelete := make([]types.Message, 0)
 			for _, msg := range result.Messages {
-				if err := s.consumeFn([]byte(*msg.Body)); err != nil {
+				if err := consumeFn([]byte(*msg.Body)); err != nil {
 					slog.Error("error in consume function", slog.Any("error", err.Error()))
 					continue
 				}
 
-				toDelete = append(toDelete, msg)
+				if s.config.DeleteStrategy == DeleteStrategyOnSuccess {
+					toDelete = append(toDelete, msg)
+				}
 			}
 
 			if err := s.deleteSqsMessages(ctx, toDelete); err != nil {
